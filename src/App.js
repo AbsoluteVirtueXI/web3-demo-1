@@ -44,7 +44,9 @@ function App() {
         dispatch({ type: 'SET_enabled', isEnabled: false })
       }
     }
-    connect2MetaMask()
+    if (state.isWeb3) {
+      connect2MetaMask()
+    }
   }, [state.isWeb3])
 
   return (
