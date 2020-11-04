@@ -7,6 +7,8 @@ const web3Reducer = (state, action) => {
   switch (action.type) {
     case 'SET_isWeb3':
       return { ...state, isWeb3: action.isWeb3 }
+    case 'SET_enabled':
+      return { ...state, isEnabled: action.isEnabled }
     default:
       throw new Error(`Unhandled action ${action.type} in web3Reducer`)
   }
@@ -14,6 +16,7 @@ const web3Reducer = (state, action) => {
 
 const initialWeb3State = {
   isWeb3: false,
+  isEnabled: false,
 }
 
 function App() {
@@ -28,6 +31,22 @@ function App() {
     }
   }, [])
 
+  //Check if Metamask is Enabled
+  useEffect(() => {
+    const connect2MetaMask = async () => {
+      try {
+        const accounts = await window.ethereum.request({
+          method: 'eth_requestAccounts',
+        })
+        dispatch({ type: 'SET_enabled', isEnabled: true })
+      } catch (e) {
+        console.log('Error:', e)
+        dispatch({ type: 'SET_enabled', isEnabled: false })
+      }
+    }
+    connect2MetaMask()
+  }, [state.isWeb3])
+
   return (
     <>
       <Center>
@@ -35,6 +54,9 @@ function App() {
       </Center>
       <VStack>
         <Text>Web3 : {state.isWeb3 ? 'injected' : 'not found'}</Text>
+        <Text>
+          MetaMask status: {state.isEnabled ? 'connected' : 'disconnected'}
+        </Text>
       </VStack>
     </>
   )
