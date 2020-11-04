@@ -13,6 +13,8 @@ const web3Reducer = (state, action) => {
       return { ...state, account: action.account }
     case 'SET_provider':
       return { ...state, provider: action.provider }
+    case 'SET_network':
+      return { ...state, network: action.network }
     default:
       throw new Error(`Unhandled action ${action.type} in web3Reducer`)
   }
@@ -23,6 +25,7 @@ const initialWeb3State = {
   isEnabled: false,
   account: ethers.constants.AddressZero,
   provider: null,
+  network: null,
 }
 
 function App() {
@@ -61,6 +64,8 @@ function App() {
     const connect2Provider = async () => {
       const provider = new ethers.providers.Web3Provider(window.ethereum)
       dispatch({ type: 'SET_provider', provider: provider })
+      const network = await provider.getNetwork()
+      dispatch({ type: 'SET_network', network: network })
     }
 
     if (state.isEnabled) {
@@ -79,6 +84,12 @@ function App() {
           MetaMask status: {state.isEnabled ? 'connected' : 'disconnected'}
         </Text>
         {state.isEnabled && <Text>account: {state.account}</Text>}
+        {state.network && (
+          <>
+            <Text>Network name: {state.network.name}</Text>
+            <Text>Network id: {state.network.chainId}</Text>
+          </>
+        )}
       </VStack>
     </>
   )
