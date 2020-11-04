@@ -15,6 +15,8 @@ const web3Reducer = (state, action) => {
       return { ...state, provider: action.provider }
     case 'SET_network':
       return { ...state, network: action.network }
+    case 'SET_balance':
+      return { ...state, balance: action.balance }
     default:
       throw new Error(`Unhandled action ${action.type} in web3Reducer`)
   }
@@ -26,6 +28,7 @@ const initialWeb3State = {
   account: ethers.constants.AddressZero,
   provider: null,
   network: null,
+  balance: '0',
 }
 
 function App() {
@@ -64,14 +67,19 @@ function App() {
     const connect2Provider = async () => {
       const provider = new ethers.providers.Web3Provider(window.ethereum)
       dispatch({ type: 'SET_provider', provider: provider })
+      // https://docs.ethers.io/v5/api/providers/provider/#Provider-getBalance
       const network = await provider.getNetwork()
       dispatch({ type: 'SET_network', network: network })
+      // https://docs.ethers.io/v5/api/providers/provider/#Provider-getBalance
+      const _balance = await provider.getBalance(state.account)
+      const balance = ethers.utils.formatEther(_balance)
+      dispatch({ type: 'SET_balance', balance: balance })
     }
 
-    if (state.isEnabled) {
+    if (state.isEnabled && state.account !== ethers.constants.AddressZero) {
       connect2Provider()
     }
-  }, [state.isEnabled])
+  }, [state.isEnabled, state.account])
 
   return (
     <>
@@ -84,6 +92,7 @@ function App() {
           MetaMask status: {state.isEnabled ? 'connected' : 'disconnected'}
         </Text>
         {state.isEnabled && <Text>account: {state.account}</Text>}
+        <Text>balance: {state.balance}</Text>
         {state.network && (
           <>
             <Text>Network name: {state.network.name}</Text>
