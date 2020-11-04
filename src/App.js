@@ -49,6 +49,8 @@ function App() {
     }
   }, [state.isWeb3])
 
+  useEffect(() => {}, [state.isEnabled])
+
   return (
     <>
       <Center>
