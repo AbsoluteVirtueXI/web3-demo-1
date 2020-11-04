@@ -1,5 +1,5 @@
 import React from 'react'
-import { Heading, Text, Center, Button } from '@chakra-ui/core'
+import { Heading, Center } from '@chakra-ui/core'
 
 function App() {
   return (
