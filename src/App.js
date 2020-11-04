@@ -9,6 +9,10 @@ const web3Reducer = (state, action) => {
       return { ...state, isWeb3: action.isWeb3 }
     case 'SET_enabled':
       return { ...state, isEnabled: action.isEnabled }
+    case 'SET_account':
+      return { ...state, account: action.account }
+    case 'SET_provider':
+      return { ...state, provider: action.provider }
     default:
       throw new Error(`Unhandled action ${action.type} in web3Reducer`)
   }
@@ -17,6 +21,8 @@ const web3Reducer = (state, action) => {
 const initialWeb3State = {
   isWeb3: false,
   isEnabled: false,
+  account: ethers.constants.AddressZero,
+  provider: null,
 }
 
 function App() {
@@ -31,7 +37,7 @@ function App() {
     }
   }, [])
 
-  //Check if Metamask is Enabled
+  //Check if Metamask is Enabled and get account
   useEffect(() => {
     const connect2MetaMask = async () => {
       try {
@@ -39,6 +45,7 @@ function App() {
           method: 'eth_requestAccounts',
         })
         dispatch({ type: 'SET_enabled', isEnabled: true })
+        dispatch({ type: 'SET_account', account: accounts[0] })
       } catch (e) {
         console.log('Error:', e)
         dispatch({ type: 'SET_enabled', isEnabled: false })
@@ -49,7 +56,17 @@ function App() {
     }
   }, [state.isWeb3])
 
-  useEffect(() => {}, [state.isEnabled])
+  // Connect to provider
+  useEffect(() => {
+    const connect2Provider = async () => {
+      const provider = new ethers.providers.Web3Provider(window.ethereum)
+      dispatch({ type: 'SET_provider', provider: provider })
+    }
+
+    if (state.isEnabled) {
+      connect2Provider()
+    }
+  }, [state.isEnabled])
 
   return (
     <>
@@ -61,6 +78,7 @@ function App() {
         <Text>
           MetaMask status: {state.isEnabled ? 'connected' : 'disconnected'}
         </Text>
+        {state.isEnabled && <Text>account: {state.account}</Text>}
       </VStack>
     </>
   )
