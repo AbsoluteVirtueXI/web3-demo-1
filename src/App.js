@@ -1,4 +1,4 @@
-import React, { useReducer } from 'react'
+import React, { useEffect, useReducer } from 'react'
 import { Heading, Center, Text, VStack } from '@chakra-ui/core'
 // https://docs.ethers.io/v5/
 import { ethers } from 'ethers'
@@ -18,6 +18,7 @@ const initialWeb3State = {
 
 function App() {
   const [state, disptach] = useReducer(web3Reducer, initialWeb3State)
+  useEffect(() => {})
   return (
     <>
       <Center>
