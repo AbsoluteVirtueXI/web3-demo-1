@@ -65,15 +65,21 @@ function App() {
   // Connect to provider
   useEffect(() => {
     const connect2Provider = async () => {
-      const provider = new ethers.providers.Web3Provider(window.ethereum)
-      dispatch({ type: 'SET_provider', provider: provider })
-      // https://docs.ethers.io/v5/api/providers/provider/#Provider-getBalance
-      const network = await provider.getNetwork()
-      dispatch({ type: 'SET_network', network: network })
-      // https://docs.ethers.io/v5/api/providers/provider/#Provider-getBalance
-      const _balance = await provider.getBalance(state.account)
-      const balance = ethers.utils.formatEther(_balance)
-      dispatch({ type: 'SET_balance', balance: balance })
+      try {
+        const provider = new ethers.providers.Web3Provider(window.ethereum)
+        dispatch({ type: 'SET_provider', provider: provider })
+        // https://docs.ethers.io/v5/api/providers/provider/#Provider-getBalance
+        const network = await provider.getNetwork()
+        dispatch({ type: 'SET_network', network: network })
+        // https://docs.ethers.io/v5/api/providers/provider/#Provider-getBalance
+        const _balance = await provider.getBalance(state.account)
+        // https://docs.ethers.io/v5/api/utils/display-logic/#utils-formatEther
+        const balance = ethers.utils.formatEther(_balance)
+        dispatch({ type: 'SET_balance', balance: balance })
+      } catch (e) {
+        dispatch({ type: 'SET_network', network: initialWeb3State.network })
+        dispatch({ type: 'SET_balance', balance: initialWeb3State.balance })
+      }
     }
 
     if (state.isEnabled && state.account !== ethers.constants.AddressZero) {
