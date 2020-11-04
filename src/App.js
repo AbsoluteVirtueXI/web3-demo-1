@@ -17,8 +17,17 @@ const initialWeb3State = {
 }
 
 function App() {
-  const [state, disptach] = useReducer(web3Reducer, initialWeb3State)
-  useEffect(() => {})
+  const [state, dispatch] = useReducer(web3Reducer, initialWeb3State)
+
+  //Check if Web3 is injected
+  useEffect(() => {
+    if (typeof window.ethereum !== 'undefined') {
+      dispatch({ type: 'SET_isWeb3', isWeb3: true })
+    } else {
+      dispatch({ type: 'SET_isWeb3', isWeb3: false })
+    }
+  }, [])
+
   return (
     <>
       <Center>
