@@ -1,5 +1,12 @@
 import React, { useEffect, useReducer } from 'react'
-import { Heading, Center, Text, VStack } from '@chakra-ui/core'
+import {
+  Heading,
+  Center,
+  Text,
+  VStack,
+  UnorderedList,
+  ListItem,
+} from '@chakra-ui/core'
 // https://docs.ethers.io/v5/
 import { ethers } from 'ethers'
 
@@ -15,6 +22,8 @@ const web3Reducer = (state, action) => {
       return { ...state, provider: action.provider }
     case 'SET_network':
       return { ...state, network: action.network }
+    case 'SET_signer':
+      return { ...state, signer: action.signer }
     case 'SET_balance':
       return { ...state, balance: action.balance }
     default:
@@ -27,19 +36,20 @@ const initialWeb3State = {
   isEnabled: false,
   account: ethers.constants.AddressZero,
   provider: null,
+  signer: null,
   network: null,
   balance: '0',
 }
 
 function App() {
-  const [state, dispatch] = useReducer(web3Reducer, initialWeb3State)
+  const [web3State, web3Dispatch] = useReducer(web3Reducer, initialWeb3State)
 
   //Check if Web3 is injected
   useEffect(() => {
     if (typeof window.ethereum !== 'undefined') {
-      dispatch({ type: 'SET_isWeb3', isWeb3: true })
+      web3Dispatch({ type: 'SET_isWeb3', isWeb3: true })
     } else {
-      dispatch({ type: 'SET_isWeb3', isWeb3: false })
+      web3Dispatch({ type: 'SET_isWeb3', isWeb3: false })
     }
   }, [])
 
@@ -50,42 +60,47 @@ function App() {
         const accounts = await window.ethereum.request({
           method: 'eth_requestAccounts',
         })
-        dispatch({ type: 'SET_enabled', isEnabled: true })
-        dispatch({ type: 'SET_account', account: accounts[0] })
+        web3Dispatch({ type: 'SET_enabled', isEnabled: true })
+        web3Dispatch({ type: 'SET_account', account: accounts[0] })
       } catch (e) {
         console.log('Error:', e)
-        dispatch({ type: 'SET_enabled', isEnabled: false })
+        web3Dispatch({ type: 'SET_enabled', isEnabled: false })
       }
     }
-    if (state.isWeb3) {
+    if (web3State.isWeb3) {
       connect2MetaMask()
     }
-  }, [state.isWeb3])
+  }, [web3State.isWeb3])
 
   // Connect to provider
   useEffect(() => {
     const connect2Provider = async () => {
       try {
         const provider = new ethers.providers.Web3Provider(window.ethereum)
-        dispatch({ type: 'SET_provider', provider: provider })
+        web3Dispatch({ type: 'SET_provider', provider: provider })
+        const signer = provider.getSigner()
+        web3Dispatch({ type: 'SET_signer', signer: signer })
         // https://docs.ethers.io/v5/api/providers/provider/#Provider-getBalance
         const network = await provider.getNetwork()
-        dispatch({ type: 'SET_network', network: network })
+        web3Dispatch({ type: 'SET_network', network: network })
         // https://docs.ethers.io/v5/api/providers/provider/#Provider-getBalance
-        const _balance = await provider.getBalance(state.account)
+        const _balance = await provider.getBalance(web3State.account)
         // https://docs.ethers.io/v5/api/utils/display-logic/#utils-formatEther
         const balance = ethers.utils.formatEther(_balance)
-        dispatch({ type: 'SET_balance', balance: balance })
+        web3Dispatch({ type: 'SET_balance', balance: balance })
       } catch (e) {
-        dispatch({ type: 'SET_network', network: initialWeb3State.network })
-        dispatch({ type: 'SET_balance', balance: initialWeb3State.balance })
+        web3Dispatch({ type: 'SET_network', network: initialWeb3State.network })
+        web3Dispatch({ type: 'SET_balance', balance: initialWeb3State.balance })
       }
     }
 
-    if (state.isEnabled && state.account !== ethers.constants.AddressZero) {
+    if (
+      web3State.isEnabled &&
+      web3State.account !== ethers.constants.AddressZero
+    ) {
       connect2Provider()
     }
-  }, [state.isEnabled, state.account])
+  }, [web3State.isEnabled, web3State.account])
 
   return (
     <>
@@ -93,18 +108,42 @@ function App() {
         <Heading mb={10}>Web3 demo 1</Heading>
       </Center>
       <VStack>
-        <Text>Web3 : {state.isWeb3 ? 'injected' : 'not found'}</Text>
-        <Text>
-          MetaMask status: {state.isEnabled ? 'connected' : 'disconnected'}
-        </Text>
-        {state.isEnabled && <Text>account: {state.account}</Text>}
-        <Text>balance: {state.balance}</Text>
-        {state.network && (
-          <>
-            <Text>Network name: {state.network.name}</Text>
-            <Text>Network id: {state.network.chainId}</Text>
-          </>
-        )}
+        <UnorderedList>
+          <ListItem>
+            {web3State.isWeb3 ? (
+              <Text color="green.500">Web3: Injected</Text>
+            ) : (
+              <Text color="red.500">Web3: Not found</Text>
+            )}
+          </ListItem>
+          <ListItem>
+            {web3State.isEnabled ? (
+              <Text color="green.500">MetaMask status: connected</Text>
+            ) : (
+              <Text color="red.500">MetaMask status: disconnected</Text>
+            )}
+          </ListItem>
+          {web3State.isEnabled && (
+            <>
+              <ListItem>
+                <Text>account: {web3State.account}</Text>
+              </ListItem>
+              <ListItem>
+                <Text>balance: {web3State.balance}</Text>
+              </ListItem>
+              {web3State.network && (
+                <>
+                  <ListItem>
+                    <Text>Network name: {web3State.network.name}</Text>
+                  </ListItem>
+                  <ListItem>
+                    <Text>Network id: {web3State.network.chainId}</Text>
+                  </ListItem>
+                </>
+              )}
+            </>
+          )}
+        </UnorderedList>
       </VStack>
     </>
   )
